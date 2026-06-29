@@ -1,5 +1,7 @@
 package com.example.demo.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.demo.entity.User;
@@ -9,4 +11,6 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     // Jpa rất hay khi cung cấp các phương thức check tồn tại theo một trường gì đó
     boolean existsByUsername(String username);
+
+    Optional<User> findByUsername(String username);
 }

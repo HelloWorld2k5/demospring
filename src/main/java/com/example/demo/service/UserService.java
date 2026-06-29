@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import java.util.List;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.request.UserCreationRequest;
@@ -13,17 +15,17 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRepository;
 
-import lombok.AccessLevel;
+// import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+// import lombok.experimental.FieldDefaults;
 
 @Service
 @RequiredArgsConstructor // tạo constructor có tham số với các field final để tiêm bean
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true) // tạo fields private và final
+// @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true) // tạo fields private và final
 public class UserService {
 
-    UserRepository userRepository;
-    UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public User createUser(UserCreationRequest request) {
 
@@ -40,11 +42,12 @@ public class UserService {
 
         User user = userMapper.toUser(request); // duy nhất 1 dòng
 
-        if (user != null) {
-            return userRepository.save(user);
-        }
+        // Mã hoá mật khẩu bằng BCrypt của dependency spring security
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
-        throw new AppException(ErrorCode.UNCATEGORIZED_ERROR); // user null
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        return userRepository.save(user);
     }
 
     public List<User> getAllUsers() {
@@ -73,8 +76,9 @@ public class UserService {
 
         userMapper.updateUser(user, request); // chỉ cần 1 dòng, tự động map từ request sang user
 
-        if (user == null)
-            throw new AppException(ErrorCode.UNCATEGORIZED_ERROR);
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
