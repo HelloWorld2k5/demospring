@@ -16,7 +16,7 @@ public class GlobalException {
 
     // đây là handle excep ngoài ý muốn với errorCode ngoài
     @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse<String>> handlingRuntimeException(RuntimeException exception) {
+    private ResponseEntity<ApiResponse<String>> handlingRuntimeException(RuntimeException exception) {
 
         ApiResponse<String> apiResponse = new ApiResponse<>();
 
@@ -28,7 +28,7 @@ public class GlobalException {
 
     // Handle excep từ việc validate password
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse<String>> handlingValidation(MethodArgumentNotValidException exception) {
+    private ResponseEntity<ApiResponse<String>> handlingValidation(MethodArgumentNotValidException exception) {
 
         // Nếu message key nhận được ko đúng thì sao? -> bắn ra IllegalArgumentException và vẫn trả về res mặc định của spring
         // Cách giải quyết là tạo thêm 1 error code cho excep trên, rồi gán vào biến errorCode ở dưới
@@ -57,7 +57,7 @@ public class GlobalException {
 
     // Handle app excep đây, lấy error code từ excep ra rồi đưa vào apiResponse
     @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse<String>> handlingAppException(AppException exception) {
+    private ResponseEntity<ApiResponse<String>> handlingAppException(AppException exception) {
     
         ErrorCode errorCode = exception.getErrorCode();
     
