@@ -47,14 +47,14 @@ public class AuthenticationService {
 
     @NonFinal // giúp spring ko tự động tiêm bean vào biến này
     @Value("${jwt.signerKey}") // để lấy dữ liệu từ application.yaml tiêm vào biến
-    protected String SIGNER_KEY;
+    protected String signerKey;
 
 
     // Hàm xác thực token
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         String token = request.getToken(); // lấy token
 
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes()); // tạo verifier
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes()); // tạo verifier
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
@@ -68,6 +68,8 @@ public class AuthenticationService {
             .build();
     }
 
+
+    // đây là hàm login
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         User user = userRepository.findByUsername(request.getUsername()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
@@ -109,7 +111,7 @@ public class AuthenticationService {
         JWSObject jwsObject = new JWSObject(header, payload); // nhét header và payload vào jwt
 
         try {
-            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes())); // ký xác nhận, tức là tạo signature rồi nhét vào jwt
+            jwsObject.sign(new MACSigner(signerKey.getBytes())); // ký xác nhận, tức là tạo signature rồi nhét vào jwt
             return jwsObject.serialize(); // return jwt dưới dạng string
         } catch (JOSEException e) {
             log.error("Cannot create token!", e);
