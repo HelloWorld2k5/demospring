@@ -1,13 +1,16 @@
 package com.example.demo.entity;
 
 import java.time.LocalDate;
+import java.util.Set;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,6 +20,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class User {
 
     @Id
@@ -26,5 +30,6 @@ public class User {
     String password;
     String fullName;
     LocalDate dob;
+    Set<String> roles; // 1 user có thể có nhiều roles
 
 }

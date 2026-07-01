@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,6 +11,7 @@ import com.example.demo.dto.request.UserCreationRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.User;
+import com.example.demo.enums.Role;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMapper;
@@ -27,6 +29,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    // Mã hoá mật khẩu bằng BCrypt của dependency spring security
+    private final PasswordEncoder passwordEncoder;
+
     public User createUser(UserCreationRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -42,10 +47,12 @@ public class UserService {
 
         User user = userMapper.toUser(request); // duy nhất 1 dòng
 
-        // Mã hoá mật khẩu bằng BCrypt của dependency spring security
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        HashSet<String> roles = new HashSet<>();
+        roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
+
+        user.setRoles(roles); // set roles
 
         return userRepository.save(user);
     }

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RestController
 @RequestMapping("/auth") // định dạng chung cho đường dẫn
 @Data
-@RequiredArgsConstructor
+@RequiredArgsConstructor // chỉ tạo constructor chỉ các fields có final hoặc @NonNull
 public class AuthenticationController {
     
     private final AuthenticationService authenticationService;
