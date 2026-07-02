@@ -4,7 +4,6 @@ import com.example.demo.dto.request.UserCreationRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.UserResponse;
-import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 
 import jakarta.validation.Valid;
@@ -32,37 +31,56 @@ public class UserController {
     
     private final UserService userService;
 
+    // Tạo user mới
     @PostMapping("/users")
-    public ApiResponse<User> createUser(@RequestBody @Valid UserCreationRequest request) {
+    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
 
-        ApiResponse<User> apiResponse = new ApiResponse<>();
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
 
         apiResponse.setResult(userService.createUser(request));
 
         return apiResponse;
     }
     
+    // Lấy toàn bộ users
     @GetMapping("/users")
-    public List<User> getAllUser() {
+    public ApiResponse<List<UserResponse>> getAllUser() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         log.info("Username: {}", authentication.getName());   
         authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));     
 
-        return userService.getAllUsers();
+        return ApiResponse.<List<UserResponse>>builder()
+                .result(userService.getAllUsers())
+                .build();
     }
 
+    // Tìm user bằng id
     @GetMapping("/users/{userId}")
-    public UserResponse getUserById(@PathVariable String userId) {
-        return userService.getUserById(userId);
+    public ApiResponse<UserResponse> getUserById(@PathVariable String userId) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getUserById(userId))
+                .build();
+    }
+
+    // Lấy info của chính mình
+    @GetMapping("/users/myInfo")
+    public ApiResponse<UserResponse> getMyInfo() {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .build();
     }
     
+    // Cập nhật user bằng id
     @PutMapping("/users/{userId}")
-    public UserResponse updateUserById(@PathVariable String userId, @RequestBody @Valid UserUpdateRequest request) {
-        return userService.updateUserById(userId, request);
+    public ApiResponse<UserResponse> updateUserById(@PathVariable String userId, @RequestBody @Valid UserUpdateRequest request) {
+        return ApiResponse.<UserResponse>builder()
+            .result(userService.updateUserById(userId, request))
+            .build();
     }
 
+    // Xoá user bằng id
     @DeleteMapping("/users/{userId}")
     public void deleteUserById(@PathVariable String userId) {
         userService.deleteUserById(userId);

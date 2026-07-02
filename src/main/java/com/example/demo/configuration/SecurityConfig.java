@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,10 +18,11 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.example.demo.enums.Role;
+// import com.example.demo.enums.Role;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // bật authorize bằng method (PostAuthorize và PreAuthorize)
 public class SecurityConfig {
 
     // Các endpoints mà ai cũng truy cập được
@@ -42,7 +44,7 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(request -> request
                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll() // mở của cho 3 endpoints trên truy cập
                 //.requestMatchers(HttpMethod.GET, "/users").hasAuthority("ROLE_ADMIN") // endpoint với get method này chỉ cho admin truy cập, ban đầu là SCOPE_ADMIN, custome lại thành ROLE_ADMIN khi đó nên chuyển sang hasRole()
-                .requestMatchers(HttpMethod.GET, "/users").hasRole(Role.ADMIN.name())
+                // .requestMatchers(HttpMethod.GET, "/users").hasRole(Role.ADMIN.name())
                 .anyRequest().authenticated()); // các endpoints khác phải được authenticate thì mới truy cập được
 
         /* - Kích hoạt BearerTokenAuthenticationFilter:
@@ -73,7 +75,6 @@ public class SecurityConfig {
 
         return jwtAuthenticationConverter;
     }
-
 
     // Hàm check token
     @Bean

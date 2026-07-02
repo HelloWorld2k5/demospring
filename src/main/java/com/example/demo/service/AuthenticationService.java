@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.configuration.ApplicationInitConfig;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -8,7 +7,6 @@ import java.util.Date;
 import java.util.StringJoiner;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -93,7 +91,7 @@ public class AuthenticationService {
 
     /* 
         JWT (json web token) là chuỗi gồm header.payload.signature
-            - Header: chứa info về loại token, thuật toán mã hoá
+            -  Header: chứa info về loại token, thuật toán mã hoá
             - Payload: chứa thông tin dữ liệu bạn muốn truyền đi (gọi là claims)
             - Signature: Bằng Header + Payload băm với 1 secret key
     */
