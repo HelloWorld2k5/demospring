@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.text.ParseException;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/auth") // định dạng chung cho đường dẫn
 @Data
 @RequiredArgsConstructor // chỉ tạo constructor chỉ các fields có final hoặc @NonNull
+@CrossOrigin(origins = "http://localhost:5173/")
 public class AuthenticationController {
     
     private final AuthenticationService authenticationService;

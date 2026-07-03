@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -54,12 +55,20 @@ public class SecurityConfig {
            - Chốt cuối AuthorizationFilter vào SecurityConfig để check endpoints này cần quyền gì
              sau đó vào SecurityContextHolder xem có đủ quyền không (bằng cách xem có dữ liệu trong payload không)
         */
-        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
-                .decoder(jwtDecoder())
-                .jwtAuthenticationConverter(jwtAuthenticationConverter()))); // dùng hàm, custom lại prefix authority SCOPE_
+        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwtConfigurer -> jwtConfigurer
+                        .decoder(jwtDecoder())
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter())) // dùng hàm, custom lại prefix authority SCOPE_
+                .authenticationEntryPoint(new JwtAuthenticationEntryPoint())); 
+        // Dòng set authentication entry point bằng JwtAuthenticationEntryPoint là để báo tôi đang cấu hình ứng dụng này làm OAuth2 
+        // Resource Server (xác thực bằng JWT). Nếu có bất kỳ thằng nào bị lỗi xác thực token (Token fake, Token hết hạn, không có 
+        // Token...), ông đừng dùng cấu hình mặc định của ông nữa, mà hãy đá Request đó sang cho
+        // class JwtAuthenticationEntryPoint của tôi xử lý!
 
         // Tắt chống csrf để chạy nhanh hơn vì dùng jwt lưu ở local storage nên không cần lo về bị tấn công csrf
-        httpSecurity.csrf(csrf -> csrf.disable());
+        httpSecurity
+                .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults()); // Cấu hình cors mặc định để frontend call api
 
         return httpSecurity.build();
     }
