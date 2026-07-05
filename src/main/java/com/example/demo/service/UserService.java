@@ -16,7 +16,7 @@ import com.example.demo.entity.User;
 import com.example.demo.enums.Role;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
-import com.example.demo.mapper.UserMapper;
+import com.example.demo.mapper.UserMappper;
 import com.example.demo.repository.UserRepository;
 
 // import lombok.AccessLevel;
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final UserMappper userMapper;
 
     // Mã hoá mật khẩu bằng BCrypt của dependency spring security
     private final PasswordEncoder passwordEncoder;
@@ -56,7 +56,7 @@ public class UserService {
         HashSet<String> roles = new HashSet<>();
         roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
 
-        user.setRoles(roles); // set roles
+        // user.setRoles(roles); // set roles
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -103,7 +103,6 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    @PreAuthorize("returnObject.username == authentication.name or hasRole('ADMIN')")
     public UserResponse updateUserById(String userId, UserUpdateRequest request) {
 
         if (userId == null) {
@@ -124,7 +123,6 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    @PreAuthorize("returnObject.username == authentication.name or hasRole('ADMIN')")
     public void deleteUserById(String userId) {
         if (userId != null) {
             userRepository.deleteById(userId);

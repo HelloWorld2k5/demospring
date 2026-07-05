@@ -10,7 +10,7 @@ import com.example.demo.entity.User;
 
 @Mapper(componentModel = "spring") // dependency Mapstruct cho phép mapper để ánh xạ dữ liệu từ obj này sang obj khác
 // Chỉ cần interface, mapper tự động sinh ra code, xem trong file class ở folder target
-public interface UserMapper {
+public interface UserMappper {
 
 
     // Lưu ý khi dùng Mapstruct: khi sửa dto thì cần xoá cache của mapstruct, nếu không hay xảy ra lỗi

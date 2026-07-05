@@ -34,8 +34,13 @@ public class ApplicationInitConfig {
                 User user = User.builder()
                         .username("admin")
                         .password(passwordEncoder.encode("admin2k5"))
-                        .roles(roles)
+                        // .roles(roles)
                         .build();
+
+                if (user == null) {
+                    log.error("Cannot create admin user! Some errors happen!");
+                    return;
+                }   
 
                 userRepository.save(user);
 

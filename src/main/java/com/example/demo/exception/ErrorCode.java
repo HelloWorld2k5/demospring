@@ -3,7 +3,6 @@ package com.example.demo.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
-import jakarta.annotation.Nonnull;
 import lombok.Getter;
 
 // Error code chứa mã code và message của lỗi
@@ -31,7 +30,6 @@ public enum ErrorCode {
 
     private int code;
     private String message;
-    @Nonnull
     private HttpStatusCode statusCode;
 
 }

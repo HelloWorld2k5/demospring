@@ -126,7 +126,7 @@ public class AuthenticationService {
         StringJoiner stringJoiner = new StringJoiner(" "); // mỗi roles cách nhau bởi 1 space
 
         if (!CollectionUtils.isEmpty(user.getRoles())) {
-            user.getRoles().forEach(s -> stringJoiner.add(s));
+            // user.getRoles().forEach(s -> stringJoiner.add(s));
         }
 
         return stringJoiner.toString();
