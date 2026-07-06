@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,11 +13,13 @@ import org.springframework.stereotype.Service;
 import com.example.demo.dto.request.UserCreationRequest;
 import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.UserResponse;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
-import com.example.demo.enums.Role;
+// import com.example.demo.enums.Role;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMappper;
+import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 
 // import lombok.AccessLevel;
@@ -31,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final UserMappper userMapper;
 
     // Mã hoá mật khẩu bằng BCrypt của dependency spring security
@@ -53,10 +57,13 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        HashSet<String> roles = new HashSet<>();
-        roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
+        // HashSet<String> roles = new HashSet<>();
+        //roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
 
-        // user.setRoles(roles); // set roles
+        Set<Role> roles = new HashSet<>();
+        roleRepository.findById("USER").map(role -> roles.add(role));
+        
+        user.setRoles(roles); // set roles
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -64,7 +71,8 @@ public class UserService {
     // Khi truy cập đến hàm này, thì PreAuthorize sẽ lấy biểu thức tính toán check role
     // Nếu ok thì mới chạy logic trong Hàm
     // Nếu ko ok thì ném 403 (AccessDeniedException) và code trong hàm ko chạy
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('APPROVE_POST')") // có quyền
     public List<UserResponse> getAllUsers() {
 
         // Log sẽ hiện (hàm chạy) sau khi PreAuthorize check role thành công
@@ -119,6 +127,9 @@ public class UserService {
         userMapper.updateUser(user, request); // chỉ cần 1 dòng, tự động map từ request sang user
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        List<Role> roles = roleRepository.findAllById(request.getRoles());
+        user.setRoles(new HashSet<>(roles));
 
         return userMapper.toUserResponse(userRepository.save(user));
     }

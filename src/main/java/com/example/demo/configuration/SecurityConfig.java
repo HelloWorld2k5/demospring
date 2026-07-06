@@ -77,7 +77,10 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("ROLE_"); // custome lại prefix của authority từ SCOPE_ thành ROLE_
+
+        // Do bên AuthenticationService đã chủ động thêm prefix ROLE_ ở ngay token nên ta không cần convert sang ROLE_ nữa
+        // cứ để là string rỗng
+        jwtGrantedAuthoritiesConverter.setAuthorityPrefix(""); // custome lại prefix của authority từ SCOPE_ thành ROLE_
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);

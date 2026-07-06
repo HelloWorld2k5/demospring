@@ -3,8 +3,6 @@ package com.example.demo.dto.response;
 import java.time.LocalDate;
 import java.util.Set;
 
-import com.example.demo.entity.Role;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,5 +18,5 @@ public class UserResponse {
     String username;
     String fullName;
     LocalDate dob;
-    Set<Role> roles;
+    Set<RoleResponse> roles;
 }

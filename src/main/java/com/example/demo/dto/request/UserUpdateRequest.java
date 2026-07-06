@@ -1,6 +1,7 @@
 package com.example.demo.dto.request;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -21,4 +22,5 @@ public class UserUpdateRequest {
     String password;
     String fullName;
     LocalDate dob;
+    List<String> roles; // request update thêm list các roles
 }

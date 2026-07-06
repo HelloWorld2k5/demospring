@@ -1,6 +1,7 @@
 package com.example.demo.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.example.demo.dto.request.UserCreationRequest;
@@ -15,8 +16,11 @@ public interface UserMappper {
 
     // Lưu ý khi dùng Mapstruct: khi sửa dto thì cần xoá cache của mapstruct, nếu không hay xảy ra lỗi
     // xoá bằng lệnh mvn clean compile hoặc ctrl + shift + P javaclean workspace
+    @Mapping(target = "roles", ignore = true)
     User toUser(UserCreationRequest request); // mapper tự động ánh xạ từ request sang user, id ko có thì null
     UserResponse toUserResponse(User user); // map từ user sang user response
+    
+    @Mapping(target = "roles", ignore = true)
     void updateUser(@MappingTarget User user, UserUpdateRequest request); // mapper tự động ánh xạ từ biến request sang biến user
 
     // @Mapping(source = "", target = "") -> dùng để map 2 đối tượng khác tên fields, source là field cần map vào, target là field map

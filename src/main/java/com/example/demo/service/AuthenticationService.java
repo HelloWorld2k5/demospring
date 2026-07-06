@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.GlobalException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -44,6 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j // của lombok tạo 1 logger
 public class AuthenticationService {
     
+    private final GlobalException globalException;
+
     private final UserRepository userRepository;
 
     @NonFinal // giúp spring ko tự động tiêm bean vào biến này
@@ -126,7 +129,21 @@ public class AuthenticationService {
         StringJoiner stringJoiner = new StringJoiner(" "); // mỗi roles cách nhau bởi 1 space
 
         if (!CollectionUtils.isEmpty(user.getRoles())) {
-            // user.getRoles().forEach(s -> stringJoiner.add(s));
+
+            // Duyệt từng role của user
+            user.getRoles().forEach(role -> {
+                // rồi add từng role vào scope của token
+                // ta cũng chủ động thêm prefix ROLE_ vào role rồi nên bên security config ở chỗ
+                // converter không cần thêm prefix là role nữa
+                // Làm việc này dể phân biệt trong scope đâu là role đâu là permission
+                // role sẽ có prefix ROLE_ đằng trước, permission sẽ không có prefix chỉ có name thôi
+                stringJoiner.add("ROLE_" + role.getName());
+
+                // Duyệt từng permissions của mỗi role rồi cũng add vào scope của token 
+                // Khi đó scope trong token có dạng: "scope" : "ADMIN CREATE_POST APPROVE_POST REJECT_POST"
+                if (!CollectionUtils.isEmpty(role.getPermissions()))
+                    role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+            });
         }
 
         return stringJoiner.toString();
