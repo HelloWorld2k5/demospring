@@ -2,6 +2,8 @@ package com.example.demo.dto.request;
 
 import java.time.LocalDate;
 
+import com.example.demo.validator.DobConstraint;
+
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,8 +27,10 @@ public class UserCreationRequest {
 
     String username;
 
-    @Size(min = 8, message = "PASSWORD_INVALID") // msg trả về là enum key
+    @Size(min = 8, message = "PASSWORD_INVALID") // msg trả về là enum key, trong GlobalException sẽ lấy msg ra và response
     String password;
     String fullName;
+
+    @DobConstraint(min = 18, message = "INVALID_DOB") // msg trả về chính là enum key
     LocalDate dob;
 }

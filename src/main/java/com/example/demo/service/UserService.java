@@ -30,7 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor // tạo constructor có tham số với các field final để tiêm bean
 @Slf4j
-// @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true) // tạo fields private và final
+// @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true) // tạo fields
+// private và final
 public class UserService {
 
     private final UserRepository userRepository;
@@ -58,17 +59,18 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         // HashSet<String> roles = new HashSet<>();
-        //roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
+        // roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
 
         Set<Role> roles = new HashSet<>();
         roleRepository.findById("USER").map(role -> roles.add(role));
-        
+
         user.setRoles(roles); // set roles
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    // Khi truy cập đến hàm này, thì PreAuthorize sẽ lấy biểu thức tính toán check role
+    // Khi truy cập đến hàm này, thì PreAuthorize sẽ lấy biểu thức tính toán check
+    // role
     // Nếu ok thì mới chạy logic trong Hàm
     // Nếu ko ok thì ném 403 (AccessDeniedException) và code trong hàm ko chạy
     // @PreAuthorize("hasRole('ADMIN')")
@@ -83,10 +85,11 @@ public class UserService {
     // PostAuthorize vẫn cho hàm chạy bình thường
     @PostAuthorize("returnObject.username == authentication.name")
     public UserResponse getUserById(String userId) {
-        
+
         log.info("In getUserById method!");
 
-        // Ngay trước khi return về kết quả, spring gói data lại và check biểu thức trong PostAuthorize
+        // Ngay trước khi return về kết quả, spring gói data lại và check biểu thức
+        // trong PostAuthorize
         // Nếu đúng thì mới trả data
         // Nếu ko ok thì ném 403 (AccessDeniedException) và giấu data đã lưu
 
@@ -96,17 +99,20 @@ public class UserService {
         return null;
     }
 
-    // Hàm này giúp khi đang đăng nhập ta có thể lấy info của chính mình mà ko cần id (endpoint: "/users/myInfo")
+    // Hàm này giúp khi đang đăng nhập ta có thể lấy info của chính mình mà ko cần
+    // id (endpoint: "/users/myInfo")
     public UserResponse getMyInfo() {
 
-        // Khi đang đăng nhập tức là trong SecurityContextHolder có dữ liệu username và role
+        // Khi đang đăng nhập tức là trong SecurityContextHolder có dữ liệu username và
+        // role
         // Lấy context trong securitycontextholder
         var context = SecurityContextHolder.getContext();
 
         // trong context lấy username
         String username = context.getAuthentication().getName();
 
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         return userMapper.toUserResponse(user);
     }

@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.exception.GlobalException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -45,8 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j // của lombok tạo 1 logger
 public class AuthenticationService {
     
-    private final GlobalException globalException;
-
     private final UserRepository userRepository;
 
     @NonFinal // giúp spring ko tự động tiêm bean vào biến này

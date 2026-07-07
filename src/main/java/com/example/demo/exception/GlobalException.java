@@ -53,7 +53,7 @@ public class GlobalException {
             try {
                 errorCode = ErrorCode.valueOf(enumKey);
             } catch (IllegalArgumentException e) {
-                
+                log.error(e.getMessage());
             }
         } else {
             errorCode = ErrorCode.UNCATEGORIZED_ERROR;
