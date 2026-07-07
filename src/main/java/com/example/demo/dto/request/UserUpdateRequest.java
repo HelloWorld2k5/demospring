@@ -24,7 +24,7 @@ public class UserUpdateRequest {
     String password;
     String fullName;
 
-    @DobConstraint(min = 18, message = "INVALID_DOB")
+    @DobConstraint(min = 18, message = "DOB_INVALID")
     LocalDate dob;
     List<String> roles; // request update thêm list các roles
 }

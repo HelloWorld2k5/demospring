@@ -25,12 +25,13 @@ import lombok.experimental.FieldDefaults;
 
 public class UserCreationRequest {
 
+    @Size(min = 5, message = "USERNAME_INVALID")
     String username;
 
     @Size(min = 8, message = "PASSWORD_INVALID") // msg trả về là enum key, trong GlobalException sẽ lấy msg ra và response
     String password;
     String fullName;
 
-    @DobConstraint(min = 18, message = "INVALID_DOB") // msg trả về chính là enum key
+    @DobConstraint(min = 18, message = "DOB_INVALID") // msg trả về chính là enum key
     LocalDate dob;
 }
