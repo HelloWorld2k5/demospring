@@ -22,16 +22,12 @@ import com.example.demo.mapper.UserMappper;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 
-// import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-// import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor // tạo constructor có tham số với các field final để tiêm bean
 @Slf4j
-// @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true) // tạo fields
-// private và final
 public class UserService {
 
     private final UserRepository userRepository;

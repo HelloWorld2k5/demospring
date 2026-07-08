@@ -2,9 +2,9 @@ package com.example.demo.service;
 
 import java.text.ParseException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,11 +13,14 @@ import org.springframework.util.CollectionUtils;
 
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.IntrospectRequest;
+import com.example.demo.dto.request.LogoutRequest;
 import com.example.demo.dto.response.AuthenticationResponse;
 import com.example.demo.dto.response.IntrospectResponse;
+import com.example.demo.entity.InvalidatedToken;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
+import com.example.demo.repository.InvalidatedTokenRepository;
 import com.example.demo.repository.UserRepository;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -30,47 +33,47 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-// import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-// import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Data
 @RequiredArgsConstructor
-// @FieldDefaults(level = AccessLevel.PUBLIC, makeFinal = true)
 @Slf4j // của lombok tạo 1 logger
 public class AuthenticationService {
     
     private final UserRepository userRepository;
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
 
     @NonFinal // giúp spring ko tự động tiêm bean vào biến này
-    @Value("${jwt.signerKey}") // để lấy dữ liệu từ application.yaml tiêm vào biến
-    protected String signerKey;
+    @Value("${jwt.signer-key}") // để lấy dữ liệu từ application.yaml tiêm vào biến
+    protected String signerKey; // chữ ký token
 
-    // PasswordEncoder tự động được tiêm bởi ApplicationContext (Container) do bên SecurityConfig file có tạo bean
+    @NonFinal
+    @Value("${jwt.access-token-validity-in-seconds}") // lấy dữ liệu từ file application.yaml
+    protected long accessTokenValidityInSeconds; // thời gian sống của token (tính bằng giây)
+
+    // PasswordEncoder tự động được tiêm bởi ApplicationContext (Container) do bên PasswordConfig file có tạo bean
     private final PasswordEncoder passwordEncoder;
 
     // Hàm xác thực token
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         String token = request.getToken(); // lấy token
 
-        JWSVerifier verifier = new MACVerifier(signerKey.getBytes()); // tạo verifier
+        boolean isValid = true;
 
-        SignedJWT signedJWT = SignedJWT.parse(token);
+        try {
+            verifyToken(token);
+        } catch (AppException e) { // bắt lỗi throw ra để trả về json, valid = false
+            isValid = false;
+        }
 
-        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime(); // Lấy thời gian token hết hạn
-
-        boolean verified = signedJWT.verify(verifier); // xác thực 2 chữ ký có khớp nhau?
-
-        // Kết quả trả về là token đã được xác minh chưa, và token đã hết hạn chưa
         return IntrospectResponse.builder()
-            .valid(verified && expirationTime.after(new Date()))
-            .build();
+                .valid(isValid)
+                .build();
     }
-
 
     // đây là hàm login
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -84,9 +87,52 @@ public class AuthenticationService {
         String token = generateToken(user);
 
         return AuthenticationResponse.builder()
-            .token(token)
-            .authenticated(authenticated)
-            .build();
+                .token(token)
+                .authenticated(authenticated)
+                .build();
+    }
+
+    // đây là hàm logout
+    public void logout(LogoutRequest request) throws JOSEException, ParseException {
+        SignedJWT signedToken = verifyToken(request.getToken());
+
+        String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy claim id ở trong token 
+        Date expirationTime = signedToken.getJWTClaimsSet().getExpirationTime(); // Lấy thời gian hết hạn
+
+        // tạo 1 bản ghi token đã logout
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(jti)
+                .expirationTime(expirationTime.toInstant())
+                .build();
+
+        // lưu vào table trong db
+        invalidatedTokenRepository.save(invalidatedToken);
+    }
+
+    // Hàm verify token, nếu invalid thì throw AppException, valid thì trả về signedJWT phục vụ cho hàm logout
+    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes()); // tạo verifier
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime(); // Lấy thời gian hết hạn token
+
+        boolean verified = signedJWT.verify(verifier); // xác thực 2 chữ ký có khớp nhau?
+
+        // Đùng dược cả cho introspect và logout vì đều phải xác thực token có chữ ký hợp lệ và
+        // chưa hết hạn vì nếu hết hạn thì làm sao vẫn đang ở login mà logout
+        if (!(verified && expirationTime.after(new Date()))) {
+            log.error("Error verify token or expirated token!");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        // Nếu token này đã nằm trong bảng (tức là token này đã bị logout) thì cũng thow ra unauthenticated
+        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
+            log.error("This token has been logout!");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        return signedJWT;
     }
 
     /* 
@@ -99,13 +145,19 @@ public class AuthenticationService {
 
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512); // tạo header
 
+        // thời gian hiện tại 
+        Instant now = Instant.now();
+        // thời gian token hết hạn = hiện tại + số giây token sống
+        Instant expirationTime = now.plusSeconds(accessTokenValidityInSeconds);
+
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder() // tạo claims
-            .subject(user.getUsername())
-            .issuer("truong2k5.com")
-            .issueTime(new Date())
-            .expirationTime(new Date(Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()))
-            .claim("scope", buildScope(user)) // Muốn chỉ admin mới có thể truy cập endpoin get /users ta tạo thêm claim scope gồm các roles của user
-            .build();
+                .subject(user.getUsername())
+                .issuer("truong2k5.com")
+                .issueTime(Date.from(now)) // thời gian issue token
+                .expirationTime(Date.from(expirationTime)) // thời gian hết hạn token
+                .jwtID(UUID.randomUUID().toString()) // thêm vào token cái id của token đó
+                .claim("scope", buildScope(user)) // Muốn chỉ admin mới có thể truy cập endpoin get /users ta tạo thêm claim scope gồm các roles của user
+                .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject()); // tạo payload
 

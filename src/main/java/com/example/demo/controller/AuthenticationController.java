@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.IntrospectRequest;
+import com.example.demo.dto.request.LogoutRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.AuthenticationResponse;
 import com.example.demo.dto.response.IntrospectResponse;
@@ -13,6 +14,7 @@ import com.nimbusds.jose.JOSEException;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.text.ParseException;
 
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Data
 @RequiredArgsConstructor // chỉ tạo constructor chỉ các fields có final hoặc @NonNull
 @CrossOrigin(origins = "http://localhost:5173/")
+@Slf4j
 public class AuthenticationController {
     
     private final AuthenticationService authenticationService;
@@ -46,6 +49,15 @@ public class AuthenticationController {
         return ApiResponse.<IntrospectResponse>builder()
             .result(result)
             .build();
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws JOSEException, ParseException {
+        log.info(request.getToken());
+
+        authenticationService.logout(request);
+
+        return ApiResponse.<Void>builder().build();
     }
     
 }

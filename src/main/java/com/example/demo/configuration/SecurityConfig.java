@@ -1,7 +1,5 @@
 package com.example.demo.configuration;
 
-import javax.crypto.spec.SecretKeySpec;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,32 +8,32 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-// import com.example.demo.enums.Role;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity // kích hoạt hệ thống bảo mật của spring security
 @EnableMethodSecurity // bật authorize bằng method (PostAuthorize và PreAuthorize)
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     // Các endpoints mà ai cũng truy cập được
     private final String[] PUBLIC_ENDPOINTS = {
             "/users",
             "/auth/token",
-            "/auth/introspect"
+            "/auth/introspect",
+            "/auth/logout"
     };
 
     // Lấy signer key từ appication.yaml
-    @Value("${jwt.signerKey}")
-    private String signerKey;
+    @Value("${jwt.signer-key}")
+    protected String signerKey;
+
+    // nhờ có RequiredArgsConstructor, để final spring tự biết inject bean vào
+    private final CustomJwtDecoder customeJwtDecoder;
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -57,7 +55,7 @@ public class SecurityConfig {
         */
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwtConfigurer -> jwtConfigurer
-                        .decoder(jwtDecoder())
+                        .decoder(customeJwtDecoder) // check token này tồn tại trong db các token logout 
                         .jwtAuthenticationConverter(jwtAuthenticationConverter())) // dùng hàm, custom lại prefix authority SCOPE_
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint())); 
         // Dòng set authentication entry point bằng JwtAuthenticationEntryPoint là để báo tôi đang cấu hình ứng dụng này làm OAuth2 
@@ -88,20 +86,17 @@ public class SecurityConfig {
         return jwtAuthenticationConverter;
     }
 
+    // Vì ta phải check token có trong bảng token logout không nên ta không thể decode như này được
+    // Ta sẽ dùng custom jwt decode để custom riêng
     // Hàm check token
-    @Bean
-    JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
+//     @Bean
+//     JwtDecoder jwtDecoder() {
+//         SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
 
-        return NimbusJwtDecoder
-                .withSecretKey(secretKeySpec)
-                .macAlgorithm(MacAlgorithm.HS512)
-                .build();
-    }
+//         return NimbusJwtDecoder
+//                 .withSecretKey(secretKeySpec)
+//                 .macAlgorithm(MacAlgorithm.HS512)
+//                 .build();
+//     }
 
-    // Tạo bean passwordEncoder để sử dụng ở nhiều nơi
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
-    }
 }
