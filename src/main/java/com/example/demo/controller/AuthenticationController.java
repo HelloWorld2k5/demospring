@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.IntrospectRequest;
 import com.example.demo.dto.request.LogoutRequest;
+import com.example.demo.dto.request.RefreshRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.AuthenticationResponse;
 import com.example.demo.dto.response.IntrospectResponse;
@@ -43,7 +44,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/introspect")
-    public ApiResponse<IntrospectResponse> authenticate(@RequestBody IntrospectRequest request) throws JOSEException, ParseException {
+    public ApiResponse<IntrospectResponse> authenticate(@RequestBody IntrospectRequest request)
+            throws JOSEException, ParseException {
         IntrospectResponse result = authenticationService.introspect(request);
 
         return ApiResponse.<IntrospectResponse>builder()
@@ -53,11 +55,19 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     public ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws JOSEException, ParseException {
-        log.info(request.getToken());
-
         authenticationService.logout(request);
 
         return ApiResponse.<Void>builder().build();
+    }
+
+    @PostMapping("/refresh")
+    public ApiResponse<AuthenticationResponse> refreshToken(@RequestBody RefreshRequest request)
+            throws JOSEException, ParseException {
+        AuthenticationResponse result = authenticationService.refreshToken(request);
+
+        return ApiResponse.<AuthenticationResponse>builder()
+            .result(result)
+            .build();
     }
     
 }

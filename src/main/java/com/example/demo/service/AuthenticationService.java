@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.IntrospectRequest;
 import com.example.demo.dto.request.LogoutRequest;
+import com.example.demo.dto.request.RefreshRequest;
 import com.example.demo.dto.response.AuthenticationResponse;
 import com.example.demo.dto.response.IntrospectResponse;
 import com.example.demo.entity.InvalidatedToken;
@@ -107,6 +108,37 @@ public class AuthenticationService {
 
         // lưu vào table trong db
         invalidatedTokenRepository.save(invalidatedToken);
+    }
+
+    // Đây là hàm refresh token cũ và nhận về 1 token mới
+    public AuthenticationResponse refreshToken(RefreshRequest request) throws JOSEException, ParseException {
+
+        // Vẫn phải xác thực token cũ xem ổn không
+        SignedJWT signedToken = verifyToken(request.getToken());
+
+        // Nếu token cũ ok thì ta sẽ đưa token này vào bảng InvalidatedToken trong db 
+        String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy id token
+        Date expirationTime = signedToken.getJWTClaimsSet().getExpirationTime(); // lấy thời gian hết hạn
+
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(jti)
+                .expirationTime(expirationTime.toInstant())
+                .build();
+
+        // đưa token cũ vào InvalidatedToken trong db
+        invalidatedTokenRepository.save(invalidatedToken);
+
+        String username = signedToken.getJWTClaimsSet().getSubject(); // lấy username từ token
+
+        // Lấy user trong db ra dùng username
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        String token = generateToken(user);
+
+        return AuthenticationResponse.builder()
+                .token(token)
+                .authenticated(true)
+                .build();
     }
 
     // Hàm verify token, nếu invalid thì throw AppException, valid thì trả về signedJWT phục vụ cho hàm logout
