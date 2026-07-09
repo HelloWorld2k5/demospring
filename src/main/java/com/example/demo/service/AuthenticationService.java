@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -50,11 +51,15 @@ public class AuthenticationService {
 
     @NonFinal // giúp spring ko tự động tiêm bean vào biến này
     @Value("${jwt.signer-key}") // để lấy dữ liệu từ application.yaml tiêm vào biến
-    protected String signerKey; // chữ ký token
+    protected String SIGNER_KEY; // chữ ký token
 
     @NonFinal
     @Value("${jwt.access-token-validity-in-seconds}") // lấy dữ liệu từ file application.yaml
-    protected long accessTokenValidityInSeconds; // thời gian sống của token (tính bằng giây)
+    protected long ACCESS_TOKEN_VALIDITY_IN_SECONDS; // thời gian sống của access token (tính bằng giây)
+
+    @NonFinal
+    @Value("${jwt.refreshable-duration-in-seconds}")
+    protected long REFRESHABLE_DURATION_IN_SECONDS; //
 
     // PasswordEncoder tự động được tiêm bởi ApplicationContext (Container) do bên PasswordConfig file có tạo bean
     private final PasswordEncoder passwordEncoder;
@@ -66,7 +71,7 @@ public class AuthenticationService {
         boolean isValid = true;
 
         try {
-            verifyToken(token);
+            verifyToken(token, false);
         } catch (AppException e) { // bắt lỗi throw ra để trả về json, valid = false
             isValid = false;
         }
@@ -95,26 +100,43 @@ public class AuthenticationService {
 
     // đây là hàm logout
     public void logout(LogoutRequest request) throws JOSEException, ParseException {
-        SignedJWT signedToken = verifyToken(request.getToken());
 
-        String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy claim id ở trong token 
-        Date expirationTime = signedToken.getJWTClaimsSet().getExpirationTime(); // Lấy thời gian hết hạn
+        /*
+            Giải thích tại sao hàm logout lại verifytoken có isRefresh = true:
+            Nếu có 1 trường hợp là token hết hạn nhưng người dùng vẫn đang ở trên web chưa thao tác
+            gì để refresh token cả. Sau đó user logout, frontend vẫn gửi cái token hết hạn đó lên
+            nhưng chết ngay ở dòng xác thực hết hạn (vì throw ra excep) và hàm logout này sẽ không đưa token đó vào table invalidated
+            token được .Nếu hacker có được token hết hạn này chỉ cần gọi refresh token, và vì token này ko có trong bảng
+            nên vẫn ok và vẫn trong thời gian max có thể refresh nên nó vẫn cấp cho hacker 1 token mới, quá nguy hiểm!
 
-        // tạo 1 bản ghi token đã logout
-        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
-                .id(jti)
-                .expirationTime(expirationTime.toInstant())
-                .build();
+            => phải coi cơ chế logout như refresh, tức là vẫn chấp nhận token hết hạn, đúng chữ ký và trong tg max refresh
+        */
 
-        // lưu vào table trong db
-        invalidatedTokenRepository.save(invalidatedToken);
+        try {
+            SignedJWT signedToken = verifyToken(request.getToken(), true);
+
+            String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy claim id ở trong token 
+            Date expirationTime = signedToken.getJWTClaimsSet().getExpirationTime(); // Lấy thời gian hết hạn
+
+            // tạo 1 bản ghi token đã logout
+            InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                    .id(jti)
+                    .expirationTime(expirationTime.toInstant())
+                    .build();
+
+            // lưu vào table trong db
+            invalidatedTokenRepository.save(invalidatedToken);
+        } catch (AppException e) {
+            log.info("This token has been expired!");
+        }
+        
     }
 
     // Đây là hàm refresh token cũ và nhận về 1 token mới
     public AuthenticationResponse refreshToken(RefreshRequest request) throws JOSEException, ParseException {
 
         // Vẫn phải xác thực token cũ xem ổn không
-        SignedJWT signedToken = verifyToken(request.getToken());
+        SignedJWT signedToken = verifyToken(request.getToken(), true);
 
         // Nếu token cũ ok thì ta sẽ đưa token này vào bảng InvalidatedToken trong db 
         String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy id token
@@ -125,7 +147,7 @@ public class AuthenticationService {
                 .expirationTime(expirationTime.toInstant())
                 .build();
 
-        // đưa token cũ vào InvalidatedToken trong db
+        // đưa token cũ vào InvalidatedToken trong db để không cho lấy token này refresh lần 2
         invalidatedTokenRepository.save(invalidatedToken);
 
         String username = signedToken.getJWTClaimsSet().getSubject(); // lấy username từ token
@@ -142,19 +164,32 @@ public class AuthenticationService {
     }
 
     // Hàm verify token, nếu invalid thì throw AppException, valid thì trả về signedJWT phục vụ cho hàm logout
-    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(signerKey.getBytes()); // tạo verifier
+    // Tham số isRefresh là để báo hàm này là hàm verify token cho các hành động bình thường hay là hàm refresh token
+    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes()); // tạo verifier
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
-        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime(); // Lấy thời gian hết hạn token
+        // 2 trường hợp: nếu chỉ là hàm verify token bình thường thì isRefresh là true và vẫn hoạt động như cũ 
+        // Nếu là trường hợp refresh token thì chắc chắn token đó hết hạn rồi nhưng ta cộng thêm REFRESHABLE_DURATION_IN_SECONDS
+        // tức là thời gian tính từ lúc token được sinh ra đến thời gian max được refresh token thì token cũ đó vẫn đc refresh
+        Date expirationTime = (isRefresh)
+                ? new Date(signedJWT
+                        .getJWTClaimsSet()
+                        .getIssueTime() // lấy thời điểm bắt đầu đăng nhập (lần đầu refresh token được sinh ra)
+                        .toInstant()
+                        .plus(REFRESHABLE_DURATION_IN_SECONDS, ChronoUnit.SECONDS) // 
+                        .toEpochMilli())
+                : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         boolean verified = signedJWT.verify(verifier); // xác thực 2 chữ ký có khớp nhau?
 
+        boolean isAlive = expirationTime.after(new Date()); // token còn sống hay hết hạn
+
         // Đùng dược cả cho introspect và logout vì đều phải xác thực token có chữ ký hợp lệ và
         // chưa hết hạn vì nếu hết hạn thì làm sao vẫn đang ở login mà logout
-        if (!(verified && expirationTime.after(new Date()))) {
-            log.error("Error verify token or expirated token!");
+        if (!(verified && isAlive)) {
+            log.error("Error verify token or expired token!");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
@@ -180,7 +215,7 @@ public class AuthenticationService {
         // thời gian hiện tại 
         Instant now = Instant.now();
         // thời gian token hết hạn = hiện tại + số giây token sống
-        Instant expirationTime = now.plusSeconds(accessTokenValidityInSeconds);
+        Instant expirationTime = now.plusSeconds(ACCESS_TOKEN_VALIDITY_IN_SECONDS);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder() // tạo claims
                 .subject(user.getUsername())
@@ -196,7 +231,7 @@ public class AuthenticationService {
         JWSObject jwsObject = new JWSObject(header, payload); // nhét header và payload vào jwt
 
         try {
-            jwsObject.sign(new MACSigner(signerKey.getBytes())); // ký xác nhận, tức là tạo signature rồi nhét vào jwt
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes())); // ký xác nhận, tức là tạo signature rồi nhét vào jwt
             return jwsObject.serialize(); // return jwt dưới dạng string
         } catch (JOSEException e) {
             log.error("Cannot create token!", e);

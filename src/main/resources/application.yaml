@@ -16,3 +16,4 @@ spring:
 jwt:
     signer-key: ${JWT_SIGNER_KEY}
     access-token-validity-in-seconds: ${ACCESS_TOKEN_VALIDITY_IN_SECONDS}
+    refreshable-duration-in-seconds: ${REFRESHABLE_DURATION_IN_SECONDS}
