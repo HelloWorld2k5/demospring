@@ -38,6 +38,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserResponse createUser(UserCreationRequest request) {
+        log.info("UserService: create user");
 
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new AppException(ErrorCode.USER_EXISTED);
@@ -57,10 +58,10 @@ public class UserService {
         // HashSet<String> roles = new HashSet<>();
         // roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
 
-        Set<Role> roles = new HashSet<>();
-        roleRepository.findById("USER").map(role -> roles.add(role));
+        // Role mặc định là USER, ko có role user vứt exception
+        Role defaultRole = roleRepository.findById("USER").orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
-        user.setRoles(roles); // set roles
+        user.setRoles(Set.of(defaultRole)); // set roles
 
         return userMapper.toUserResponse(userRepository.save(user));
     }

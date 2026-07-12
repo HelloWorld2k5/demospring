@@ -1,0 +1,11 @@
+spring:
+    datasource:
+        url: ${TEST_DB_URL}
+        username: ${TEST_DB_USER}
+        password: ${TEST_DB_PASS}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
+jwt:
+    signer-key: ${TEST_JWT_SECRET}
+    access-token-validity-in-seconds: ${TEST_JWT_AT_VALIDITY}
+    refreshable-duration-in-seconds: ${TEST_JWT_RT_DURATION}

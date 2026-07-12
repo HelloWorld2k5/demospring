@@ -51,15 +51,15 @@ public class AuthenticationService {
 
     @NonFinal // giúp spring ko tự động tiêm bean vào biến này
     @Value("${jwt.signer-key}") // để lấy dữ liệu từ application.yaml tiêm vào biến
-    protected String SIGNER_KEY; // chữ ký token
+    protected String signerKey; // chữ ký token
 
     @NonFinal
     @Value("${jwt.access-token-validity-in-seconds}") // lấy dữ liệu từ file application.yaml
-    protected long ACCESS_TOKEN_VALIDITY_IN_SECONDS; // thời gian sống của access token (tính bằng giây)
+    protected long accessTokenValidityInSeconds; // thời gian sống của access token (tính bằng giây)
 
     @NonFinal
     @Value("${jwt.refreshable-duration-in-seconds}")
-    protected long REFRESHABLE_DURATION_IN_SECONDS; //
+    protected long refreshableDurationInSeconds; //
 
     // PasswordEncoder tự động được tiêm bởi ApplicationContext (Container) do bên PasswordConfig file có tạo bean
     private final PasswordEncoder passwordEncoder;
@@ -166,19 +166,19 @@ public class AuthenticationService {
     // Hàm verify token, nếu invalid thì throw AppException, valid thì trả về signedJWT phục vụ cho hàm logout
     // Tham số isRefresh là để báo hàm này là hàm verify token cho các hành động bình thường hay là hàm refresh token
     private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes()); // tạo verifier
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes()); // tạo verifier
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
         // 2 trường hợp: nếu chỉ là hàm verify token bình thường thì isRefresh là true và vẫn hoạt động như cũ 
-        // Nếu là trường hợp refresh token thì chắc chắn token đó hết hạn rồi nhưng ta cộng thêm REFRESHABLE_DURATION_IN_SECONDS
+        // Nếu là trường hợp refresh token thì chắc chắn token đó hết hạn rồi nhưng ta cộng thêm refreshableDurationInSeconds
         // tức là thời gian tính từ lúc token được sinh ra đến thời gian max được refresh token thì token cũ đó vẫn đc refresh
         Date expirationTime = (isRefresh)
                 ? new Date(signedJWT
                         .getJWTClaimsSet()
                         .getIssueTime() // lấy thời điểm bắt đầu đăng nhập (lần đầu refresh token được sinh ra)
                         .toInstant()
-                        .plus(REFRESHABLE_DURATION_IN_SECONDS, ChronoUnit.SECONDS) // 
+                        .plus(refreshableDurationInSeconds, ChronoUnit.SECONDS) // 
                         .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
@@ -215,7 +215,7 @@ public class AuthenticationService {
         // thời gian hiện tại 
         Instant now = Instant.now();
         // thời gian token hết hạn = hiện tại + số giây token sống
-        Instant expirationTime = now.plusSeconds(ACCESS_TOKEN_VALIDITY_IN_SECONDS);
+        Instant expirationTime = now.plusSeconds(accessTokenValidityInSeconds);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder() // tạo claims
                 .subject(user.getUsername())
@@ -231,7 +231,7 @@ public class AuthenticationService {
         JWSObject jwsObject = new JWSObject(header, payload); // nhét header và payload vào jwt
 
         try {
-            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes())); // ký xác nhận, tức là tạo signature rồi nhét vào jwt
+            jwsObject.sign(new MACSigner(signerKey.getBytes())); // ký xác nhận, tức là tạo signature rồi nhét vào jwt
             return jwsObject.serialize(); // return jwt dưới dạng string
         } catch (JOSEException e) {
             log.error("Cannot create token!", e);

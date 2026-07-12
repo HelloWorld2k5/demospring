@@ -1,21 +1,18 @@
 package com.example.demo.configuration;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import com.example.demo.entity.Role;
+import com.example.demo.entity.User;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.example.demo.entity.Role;
-import com.example.demo.entity.User;
-import com.example.demo.repository.RoleRepository;
-// import com.example.demo.enums.Role;
-import com.example.demo.repository.UserRepository;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashSet;
+import java.util.Set;
 
 // Config lần đầu app chạy thì sẽ tạo 1 user admin duy nhất
 @Configuration
