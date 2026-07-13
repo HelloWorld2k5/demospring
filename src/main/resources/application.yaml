@@ -6,6 +6,7 @@ server:
 spring:
     datasource:
         url: "jdbc:mysql://localhost:3306/testspring"
+        driver-class-name: "com.mysql.cj.jdbc.Driver"
         username: ${DB_USERNAME}
         password: ${DB_PASSWORD}
     jpa:
@@ -17,3 +18,9 @@ jwt:
     signer-key: ${JWT_SIGNER_KEY}
     access-token-validity-in-seconds: ${ACCESS_TOKEN_VALIDITY_IN_SECONDS}
     refreshable-duration-in-seconds: ${REFRESHABLE_DURATION_IN_SECONDS}
+
+app:
+    init:
+        admin:
+            username: admin
+            password: ${INIT_ADMIN_PASSWORD}

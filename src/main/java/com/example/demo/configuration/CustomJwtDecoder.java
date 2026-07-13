@@ -31,13 +31,13 @@ public class CustomJwtDecoder implements JwtDecoder {
     private NimbusJwtDecoder nimbusJwtDecoder = null;
 
     @Value("${jwt.signer-key}")
-    protected String SIGNER_KEY;
+    protected String signerKey;
 
     @Override
     public Jwt decode(String token) throws JwtException {
 
         if (Objects.isNull(nimbusJwtDecoder)) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(SIGNER_KEY.getBytes(), "HS512");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
             nimbusJwtDecoder = NimbusJwtDecoder.
                     withSecretKey(secretKeySpec)
                     .macAlgorithm(MacAlgorithm.HS512)
