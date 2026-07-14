@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class RoleController {
 
     private final RoleService roleService;
-    
+
     @PostMapping
     public ApiResponse<RoleResponse> create(@RequestBody RoleRequest request) {
 
@@ -41,12 +41,11 @@ public class RoleController {
                 .result(roleService.getAll())
                 .build();
     }
-    
+
     @DeleteMapping("/{roleName}")
     public ApiResponse<Void> delete(@PathVariable String roleName) {
         roleService.delete(roleName);
-        
+
         return ApiResponse.<Void>builder().build();
     }
-
 }

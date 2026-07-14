@@ -17,9 +17,8 @@ public class DobValidator implements ConstraintValidator<DobConstraint, LocalDat
     // hàm này check field được gắn annotation chuẩn valid không
     @Override
     public boolean isValid(LocalDate value, ConstraintValidatorContext context) {
-        
-        if (Objects.isNull(value))
-            return true;
+
+        if (Objects.isNull(value)) return true;
 
         // tính số năm từ ngày truyền vào cho tới ngày hiện tại (là tính tuổi user)
         long years = ChronoUnit.YEARS.between(value, LocalDate.now(ZoneId.systemDefault()));
@@ -31,10 +30,9 @@ public class DobValidator implements ConstraintValidator<DobConstraint, LocalDat
     // Hàm này luôn chạy trước hàm isValid
     @Override
     public void initialize(DobConstraint constraintAnnotation) {
-        
+
         ConstraintValidator.super.initialize(constraintAnnotation);
 
         min = constraintAnnotation.min(); // lấy min từ ngoài gán vào field min để hàm isValid dùng
     }
-    
 }

@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j // của lombok tạo 1 logger
 public class AuthenticationService {
-    
+
     private final UserRepository userRepository;
     private final InvalidatedTokenRepository invalidatedTokenRepository;
 
@@ -76,21 +76,18 @@ public class AuthenticationService {
             isValid = false;
         }
 
-        return IntrospectResponse.builder()
-                .valid(isValid)
-                .build();
+        return IntrospectResponse.builder().valid(isValid).build();
     }
 
     // đây là hàm login
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        User user = userRepository.findByUsername(request
-                .getUsername())
+        User user = userRepository
+                .findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-        if (!authenticated)
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         String token = generateToken(user);
 
@@ -104,20 +101,20 @@ public class AuthenticationService {
     public void logout(LogoutRequest request) throws JOSEException, ParseException {
 
         /*
-            Giải thích tại sao hàm logout lại verifytoken có isRefresh = true:
-            Nếu có 1 trường hợp là token hết hạn nhưng người dùng vẫn đang ở trên web chưa thao tác
-            gì để refresh token cả. Sau đó user logout, frontend vẫn gửi cái token hết hạn đó lên
-            nhưng chết ngay ở dòng xác thực hết hạn (vì throw ra excep) và hàm logout này sẽ không đưa token đó vào table invalidated
-            token được .Nếu hacker có được token hết hạn này chỉ cần gọi refresh token, và vì token này ko có trong bảng
-            nên vẫn ok và vẫn trong thời gian max có thể refresh nên nó vẫn cấp cho hacker 1 token mới, quá nguy hiểm!
+        	Giải thích tại sao hàm logout lại verifytoken có isRefresh = true:
+        	Nếu có 1 trường hợp là token hết hạn nhưng người dùng vẫn đang ở trên web chưa thao tác
+        	gì để refresh token cả. Sau đó user logout, frontend vẫn gửi cái token hết hạn đó lên
+        	nhưng chết ngay ở dòng xác thực hết hạn (vì throw ra excep) và hàm logout này sẽ không đưa token đó vào table invalidated
+        	token được .Nếu hacker có được token hết hạn này chỉ cần gọi refresh token, và vì token này ko có trong bảng
+        	nên vẫn ok và vẫn trong thời gian max có thể refresh nên nó vẫn cấp cho hacker 1 token mới, quá nguy hiểm!
 
-            => phải coi cơ chế logout như refresh, tức là vẫn chấp nhận token hết hạn, đúng chữ ký và trong tg max refresh
+        	=> phải coi cơ chế logout như refresh, tức là vẫn chấp nhận token hết hạn, đúng chữ ký và trong tg max refresh
         */
 
         try {
             SignedJWT signedToken = verifyToken(request.getToken(), true);
 
-            String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy claim id ở trong token 
+            String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy claim id ở trong token
             Date expirationTime = signedToken.getJWTClaimsSet().getExpirationTime(); // Lấy thời gian hết hạn
 
             // tạo 1 bản ghi token đã logout
@@ -131,7 +128,6 @@ public class AuthenticationService {
         } catch (AppException e) {
             log.info("This token has been expired!");
         }
-        
     }
 
     // Đây là hàm refresh token cũ và nhận về 1 token mới
@@ -140,7 +136,7 @@ public class AuthenticationService {
         // Vẫn phải xác thực token cũ xem ổn không
         SignedJWT signedToken = verifyToken(request.getToken(), true);
 
-        // Nếu token cũ ok thì ta sẽ đưa token này vào bảng InvalidatedToken trong db 
+        // Nếu token cũ ok thì ta sẽ đưa token này vào bảng InvalidatedToken trong db
         String jti = signedToken.getJWTClaimsSet().getJWTID(); // lấy id token
         Date expirationTime = signedToken.getJWTClaimsSet().getExpirationTime(); // lấy thời gian hết hạn
 
@@ -155,14 +151,12 @@ public class AuthenticationService {
         String username = signedToken.getJWTClaimsSet().getSubject(); // lấy username từ token
 
         // Lấy user trong db ra dùng username
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         String token = generateToken(user);
 
-        return AuthenticationResponse.builder()
-                .token(token)
-                .authenticated(true)
-                .build();
+        return AuthenticationResponse.builder().token(token).authenticated(true).build();
     }
 
     // Hàm verify token, nếu invalid thì throw AppException, valid thì trả về signedJWT phục vụ cho hàm logout
@@ -172,15 +166,17 @@ public class AuthenticationService {
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
-        // 2 trường hợp: nếu chỉ là hàm verify token bình thường thì isRefresh là true và vẫn hoạt động như cũ 
-        // Nếu là trường hợp refresh token thì chắc chắn token đó hết hạn rồi nhưng ta cộng thêm refreshableDurationInSeconds
-        // tức là thời gian tính từ lúc token được sinh ra đến thời gian max được refresh token thì token cũ đó vẫn đc refresh
+        // 2 trường hợp: nếu chỉ là hàm verify token bình thường thì isRefresh là true và vẫn hoạt động như cũ
+        // Nếu là trường hợp refresh token thì chắc chắn token đó hết hạn rồi nhưng ta cộng thêm
+        // refreshableDurationInSeconds
+        // tức là thời gian tính từ lúc token được sinh ra đến thời gian max được refresh token thì token cũ đó vẫn đc
+        // refresh
         Date expirationTime = (isRefresh)
                 ? new Date(signedJWT
                         .getJWTClaimsSet()
                         .getIssueTime() // lấy thời điểm bắt đầu đăng nhập (lần đầu refresh token được sinh ra)
                         .toInstant()
-                        .plus(refreshableDurationInSeconds, ChronoUnit.SECONDS) // 
+                        .plus(refreshableDurationInSeconds, ChronoUnit.SECONDS) //
                         .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
@@ -204,17 +200,17 @@ public class AuthenticationService {
         return signedJWT;
     }
 
-    /* 
-        JWT (json web token) là chuỗi gồm header.payload.signature
-            -  Header: chứa info về loại token, thuật toán mã hoá
-            - Payload: chứa thông tin dữ liệu bạn muốn truyền đi (gọi là claims)
-            - Signature: Bằng Header + Payload băm với 1 secret key
+    /*
+    	JWT (json web token) là chuỗi gồm header.payload.signature
+    		-  Header: chứa info về loại token, thuật toán mã hoá
+    		- Payload: chứa thông tin dữ liệu bạn muốn truyền đi (gọi là claims)
+    		- Signature: Bằng Header + Payload băm với 1 secret key
     */
     private String generateToken(User user) {
 
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512); // tạo header
 
-        // thời gian hiện tại 
+        // thời gian hiện tại
         Instant now = Instant.now();
         // thời gian token hết hạn = hiện tại + số giây token sống
         Instant expirationTime = now.plusSeconds(accessTokenValidityInSeconds);
@@ -225,7 +221,7 @@ public class AuthenticationService {
                 .issueTime(Date.from(now)) // thời gian issue token
                 .expirationTime(Date.from(expirationTime)) // thời gian hết hạn token
                 .jwtID(UUID.randomUUID().toString()) // thêm vào token cái id của token đó
-                .claim("scope", buildScope(user)) // Muốn chỉ admin mới có thể truy cập endpoin get /users ta tạo thêm claim scope gồm các roles của user
+                .claim("scope", buildScope(user))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject()); // tạo payload
@@ -257,7 +253,7 @@ public class AuthenticationService {
                 // role sẽ có prefix ROLE_ đằng trước, permission sẽ không có prefix chỉ có name thôi
                 stringJoiner.add("ROLE_" + role.getName());
 
-                // Duyệt từng permissions của mỗi role rồi cũng add vào scope của token 
+                // Duyệt từng permissions của mỗi role rồi cũng add vào scope của token
                 // Khi đó scope trong token có dạng: "scope" : "ADMIN CREATE_POST APPROVE_POST REJECT_POST"
                 if (!CollectionUtils.isEmpty(role.getPermissions()))
                     role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
@@ -266,5 +262,4 @@ public class AuthenticationService {
 
         return stringJoiner.toString();
     }
-
 }

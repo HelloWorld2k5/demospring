@@ -10,8 +10,6 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(locations = "file:.env") // Ép Spring nhặt file .env ngoài cùng nạp vào Test Context
 class DemoApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {}
 }

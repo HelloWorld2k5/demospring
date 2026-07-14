@@ -3,6 +3,8 @@ package com.example.demo.exception;
 import java.util.Map;
 import java.util.Objects;
 
+import jakarta.validation.ConstraintViolation;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,12 +13,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.example.demo.dto.response.ApiResponse;
 
-import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
 
-/* 
+/*
 Xử lý các exception một cách tập trung, giúp:
-    - Controller không phải bắt các exception mà service throw ra
+	- Controller không phải bắt các exception mà service throw ra
 */
 @ControllerAdvice
 @Slf4j
@@ -47,7 +48,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     private ResponseEntity<ApiResponse<?>> handlingValidation(MethodArgumentNotValidException exception) {
 
-        // Nếu message key nhận được ko đúng thì sao? -> bắn ra IllegalArgumentException và vẫn trả về res mặc định của spring
+        // Nếu message key nhận được ko đúng thì sao? -> bắn ra IllegalArgumentException và vẫn trả về res mặc định của
+        // spring
         // Cách giải quyết là tạo thêm 1 error code cho excep trên, rồi gán vào biến errorCode ở dưới
         // Sau đó đưa lệnh valueOf vào try-catch
         ErrorCode errorCode = ErrorCode.KEY_INVALID;
@@ -65,11 +67,8 @@ public class GlobalExceptionHandler {
             }
 
             // Đối tượng này chứa tất cả thông tin chi tiết về một ràng buộc cụ thể đã bị vi phạm
-            var constraintViolation = exception
-                    .getBindingResult()
-                    .getAllErrors()
-                    .getFirst()
-                    .unwrap(ConstraintViolation.class);
+            var constraintViolation =
+                    exception.getBindingResult().getAllErrors().getFirst().unwrap(ConstraintViolation.class);
 
             // Lấy ra các attribute tức là các tham số hoặc thuộc tính của annotation ràng buộc bị
             // vi phạm khiến exception này được ném ra
@@ -79,30 +78,34 @@ public class GlobalExceptionHandler {
             attributes = constraintViolation.getConstraintDescriptor().getAttributes();
 
             log.info(attributes.toString());
-            
+
         } else {
             errorCode = ErrorCode.UNCATEGORIZED_ERROR;
         }
-        
+
         ApiResponse<?> apiResponse = new ApiResponse<>();
         apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(Objects.nonNull(attributes)
-                ? mapAttribute(errorCode.getMessage(), attributes) // nếu có attributes thì message là message đã được thay thế min được lấy từ min của annotation
-                : errorCode.getMessage()); // ko có thì cứ set message mặc định của erroCode
-        
+        apiResponse.setMessage(
+                Objects.nonNull(attributes)
+                        ? mapAttribute(
+                                errorCode.getMessage(),
+                                attributes) // nếu có attributes thì message là message đã được thay thế min được lấy từ
+                        // min của annotation
+                        : errorCode.getMessage()); // ko có thì cứ set message mặc định của erroCode
+
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
     // Handle app excep đây, lấy error code từ excep ra rồi đưa vào apiResponse
     @ExceptionHandler(value = AppException.class)
     private ResponseEntity<ApiResponse<?>> handlingAppException(AppException exception) {
-    
+
         ErrorCode errorCode = exception.getErrorCode();
-    
+
         ApiResponse<?> apiResponse = new ApiResponse<>();
         apiResponse.setCode(errorCode.getCode());
         apiResponse.setMessage(errorCode.getMessage());
-    
+
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
@@ -118,7 +121,7 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
-    } 
+    }
 
     // Hàm này lấy message mặc định, rồi thay thế min value vào trong message đó
     private String mapAttribute(String message, Map<String, Object> attributes) {
@@ -126,5 +129,4 @@ public class GlobalExceptionHandler {
 
         return message.replace("{" + MIN_ATTRIBUTE + "}", minValue);
     }
-    
 }

@@ -40,8 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 class UserControllerTest {
 
     @Autowired // Nên dùng Autowired trong môi trg chạy test
-    // công cụ giả lập các request http gửi lên controller (được cấu hình đầy đủ filter, security để bắn request đi test)
-    private MockMvc mockMvc; 
+    // công cụ giả lập các request http gửi lên controller (được cấu hình đầy đủ filter, security để bắn request đi
+    // test)
+    private MockMvc mockMvc;
 
     @Autowired
     // spring boot đã cấu hình sẵn objectMapper hỗ trợ JavaTimeModule (hỗ trợ LocalDate)
@@ -104,14 +105,18 @@ class UserControllerTest {
 
         // WHEN: nơi thực hiện hành động chính cần kiểm thử, thường chỉ gồm đúng 1 dòng code
         // (hoặc tối đa 2 dòng) để kích hoạt cái hàm/phương thức mà bạn đang viết test cho nó
-        mockMvc.perform(MockMvcRequestBuilders // tạo mock request http
-                        .post("/users") // method POST gọi đến endpoint /user
-                        .contentType(MediaType.APPLICATION_JSON_VALUE) // type response là dạng application/json
-                        .content(content != null ? content : "")) // content là userCreationRequest dưới dạng string json
+        mockMvc.perform(
+                        MockMvcRequestBuilders // tạo mock request http
+                                .post("/users") // method POST gọi đến endpoint /user
+                                .contentType(MediaType.APPLICATION_JSON_VALUE) // type response là dạng application/json
+                                .content(
+                                        content != null
+                                                ? content
+                                                : "")) // content là userCreationRequest dưới dạng string json
                 .andExpect(MockMvcResultMatchers.status().isOk()) // mong muốn trả về http status code là 200
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1000)) // mong đợi prop "code" trong json response là 1000
+                .andExpect(MockMvcResultMatchers.jsonPath("code")
+                        .value(1000)) // mong đợi prop "code" trong json response là 1000
                 .andExpect(MockMvcResultMatchers.jsonPath("result.userId").value("d309f29v02940vjew"));
-
 
         // THEN: nơi đối chiếu và kiểm tra kết quả xem hệ thống có chạy đúng như kỳ vọng của bạn hay không
         // Trong hàm này thì THEN chính là các method andExpect()
@@ -128,18 +133,11 @@ class UserControllerTest {
         // username invalid thì sẽ throw ngay ra exception chứ không đi vào code bên trong
 
         // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/users")
+        mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(content != null ? content : ""))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers
-                        .jsonPath("code")
-                        .value(1007))
-                .andExpect(MockMvcResultMatchers
-                        .jsonPath("message")
-                        .value("Username must be at least 5 characters!"));
-
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1007))
+                .andExpect(MockMvcResultMatchers.jsonPath("message").value("Username must be at least 5 characters!"));
     }
-
 }

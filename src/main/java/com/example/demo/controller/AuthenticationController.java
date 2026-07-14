@@ -1,5 +1,10 @@
 package com.example.demo.controller;
 
+import java.text.ParseException;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,13 +22,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.text.ParseException;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-
 @RestController
 @RequestMapping("/auth") // định dạng chung cho đường dẫn
 @Data
@@ -31,16 +29,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 @CrossOrigin(origins = "http://localhost:5173/")
 @Slf4j
 public class AuthenticationController {
-    
+
     private final AuthenticationService authenticationService;
 
     @PostMapping("/token")
     public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
         AuthenticationResponse result = authenticationService.authenticate(request);
 
-        return ApiResponse.<AuthenticationResponse>builder()
-            .result(result)
-            .build();
+        return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
 
     @PostMapping("/introspect")
@@ -48,9 +44,7 @@ public class AuthenticationController {
             throws JOSEException, ParseException {
         IntrospectResponse result = authenticationService.introspect(request);
 
-        return ApiResponse.<IntrospectResponse>builder()
-            .result(result)
-            .build();
+        return ApiResponse.<IntrospectResponse>builder().result(result).build();
     }
 
     @PostMapping("/logout")
@@ -65,9 +59,6 @@ public class AuthenticationController {
             throws JOSEException, ParseException {
         AuthenticationResponse result = authenticationService.refreshToken(request);
 
-        return ApiResponse.<AuthenticationResponse>builder()
-            .result(result)
-            .build();
+        return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
-    
 }

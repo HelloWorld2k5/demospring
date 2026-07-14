@@ -13,16 +13,21 @@ import com.example.demo.entity.User;
 // Chỉ cần interface, mapper tự động sinh ra code, xem trong file class ở folder target
 public interface UserMappper {
 
-
     // Lưu ý khi dùng Mapstruct: khi sửa dto thì cần xoá cache của mapstruct, nếu không hay xảy ra lỗi
     // xoá bằng lệnh mvn clean compile hoặc ctrl + shift + P javaclean workspace
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "userId", ignore = true)
     User toUser(UserCreationRequest request); // mapper tự động ánh xạ từ request sang user, id ko có thì null
-    UserResponse toUserResponse(User user); // map từ user sang user response
-    
-    @Mapping(target = "roles", ignore = true)
-    void updateUser(@MappingTarget User user, UserUpdateRequest request); // mapper tự động ánh xạ từ biến request sang biến user
 
-    // @Mapping(source = "", target = "") -> dùng để map 2 đối tượng khác tên fields, source là field cần map vào, target là field map
+    UserResponse toUserResponse(User user); // map từ user sang user response
+
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "username", ignore = true)
+    // mapper tự động ánh xạ từ biến request sang biến user
+    void updateUser(@MappingTarget User user, UserUpdateRequest request);
+
+    // @Mapping(source = "", target = "") -> dùng để map 2 đối tượng khác tên fields, source là field cần map vào,
+    // target là field map
     // @Mapping(target = "", ignore = true) -> không map field trong target
 }

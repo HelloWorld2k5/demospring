@@ -1,20 +1,8 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.request.UserCreationRequest;
-import com.example.demo.dto.request.UserUpdateRequest;
-import com.example.demo.dto.response.ApiResponse;
-import com.example.demo.dto.response.UserResponse;
-import com.example.demo.service.UserService;
+import java.util.List;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,15 +10,26 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.dto.request.UserCreationRequest;
+import com.example.demo.dto.request.UserUpdateRequest;
+import com.example.demo.dto.response.ApiResponse;
+import com.example.demo.dto.response.UserResponse;
+import com.example.demo.service.UserService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173/")
 public class UserController {
-    
+
     private final UserService userService;
 
     // Tạo user mới
@@ -44,15 +43,15 @@ public class UserController {
 
         return apiResponse;
     }
-    
+
     // Lấy toàn bộ users
     @GetMapping("/users")
     public ApiResponse<List<UserResponse>> getAllUser() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        log.info("Username: {}", authentication.getName());   
-        authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));     
+        log.info("Username: {}", authentication.getName());
+        authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
 
         return ApiResponse.<List<UserResponse>>builder()
                 .result(userService.getAllUsers())
@@ -74,13 +73,14 @@ public class UserController {
                 .result(userService.getMyInfo())
                 .build();
     }
-    
+
     // Cập nhật user bằng id
     @PutMapping("/users/{userId}")
-    public ApiResponse<UserResponse> updateUserById(@PathVariable String userId, @RequestBody @Valid UserUpdateRequest request) {
+    public ApiResponse<UserResponse> updateUserById(
+            @PathVariable String userId, @RequestBody @Valid UserUpdateRequest request) {
         return ApiResponse.<UserResponse>builder()
-            .result(userService.updateUserById(userId, request))
-            .build();
+                .result(userService.updateUserById(userId, request))
+                .build();
     }
 
     // Xoá user bằng id

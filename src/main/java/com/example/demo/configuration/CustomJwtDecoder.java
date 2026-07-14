@@ -2,7 +2,6 @@ package com.example.demo.configuration;
 
 import java.text.ParseException;
 import java.util.Objects;
-
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -38,8 +37,7 @@ public class CustomJwtDecoder implements JwtDecoder {
 
         if (Objects.isNull(nimbusJwtDecoder)) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
-            nimbusJwtDecoder = NimbusJwtDecoder.
-                    withSecretKey(secretKeySpec)
+            nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)
                     .macAlgorithm(MacAlgorithm.HS512)
                     .build();
         }
@@ -48,18 +46,20 @@ public class CustomJwtDecoder implements JwtDecoder {
         Jwt jwt = nimbusJwtDecoder.decode(token);
 
         try {
-            IntrospectResponse introspectResponse = authenticationService
-                    .introspect(IntrospectRequest.builder().token(token).build());
+            IntrospectResponse introspectResponse = authenticationService.introspect(
+                    IntrospectRequest.builder().token(token).build());
 
-            // Nếu introspectResponse mà introspect trả về valid != true thì throw ra JwtException để JwtAuthenticationEntryPoint bắt
+            // Nếu introspectResponse mà introspect trả về valid != true thì throw ra JwtException để
+            // JwtAuthenticationEntryPoint bắt
             if (!introspectResponse.isValid()) {
-                throw new JwtException("This token has been logout!"); // Những exceptions này sẽ được JwtAuthenticationEntryPoint tự động bắt và trả về response authenticated
+                // Những exceptions này sẽ được JwtAuthenticationEntryPoint tự động bắt và trả về response authenticated
+                throw new JwtException("This token has been logout!");
             }
-        } catch(JOSEException | ParseException e) {
-            throw new JwtException(e.getMessage()); // Những exceptions này sẽ được JwtAuthenticationEntryPoint tự động bắt và trả về response authenticated
+        } catch (JOSEException | ParseException e) {
+            // Những exceptions này sẽ được JwtAuthenticationEntryPoint tự động bắt và trả về response authenticated
+            throw new JwtException(e.getMessage());
         }
 
         return jwt;
     }
-    
 }

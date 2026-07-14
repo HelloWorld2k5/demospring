@@ -2,16 +2,15 @@ package com.example.demo.dto.request;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.Size;
+
 import com.example.demo.validator.DobConstraint;
 
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-// import lombok.Getter;
 import lombok.NoArgsConstructor;
-// import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 // @Getter // dependency lombok giúp tạo các getter cho các fields
@@ -22,14 +21,16 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor // tự tạo constructor ko tham số
 @AllArgsConstructor // tự tạo constructor đủ tham số
 @FieldDefaults(level = AccessLevel.PRIVATE) // tự động set access modifier cho fields là private
-
 public class UserCreationRequest {
 
     @Size(min = 5, message = "USERNAME_INVALID")
     String username;
 
-    @Size(min = 8, message = "PASSWORD_INVALID") // msg trả về là enum key, trong GlobalException sẽ lấy msg ra và response
+    @Size(
+            min = 8,
+            message = "PASSWORD_INVALID") // msg trả về là enum key, trong GlobalException sẽ lấy msg ra và response
     String password;
+
     String fullName;
 
     @DobConstraint(min = 18, message = "DOB_INVALID") // msg trả về chính là enum key

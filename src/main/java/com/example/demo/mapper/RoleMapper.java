@@ -14,6 +14,6 @@ public interface RoleMapper {
     @Mapping(target = "permissions", ignore = true) // ignore việc map permissions từ set string sang set permission
     // ta sẽ tự map trong Role service theo cách của mình
     Role toRole(RoleRequest request);
-    RoleResponse toRoleResponse(Role role);
 
+    RoleResponse toRoleResponse(Role role);
 }

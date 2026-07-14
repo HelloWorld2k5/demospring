@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,6 @@ public class Permission { // Đây là quyền mà các roles có thể có
 
     @Id
     String name; // tên quyền là id luôn
-    String description;
 
+    String description;
 }

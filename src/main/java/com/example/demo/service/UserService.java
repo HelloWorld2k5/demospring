@@ -15,7 +15,6 @@ import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
-// import com.example.demo.enums.Role;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMappper;
@@ -59,7 +58,8 @@ public class UserService {
         // roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
 
         // Role mặc định là USER, ko có role user vứt exception
-        Role defaultRole = roleRepository.findById("USER").orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        Role defaultRole =
+                roleRepository.findById("USER").orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         user.setRoles(Set.of(defaultRole)); // set roles
 
@@ -76,7 +76,9 @@ public class UserService {
 
         // Log sẽ hiện (hàm chạy) sau khi PreAuthorize check role thành công
         log.info("In getAllUsers method!");
-        return userRepository.findAll().stream().map(user -> userMapper.toUserResponse(user)).toList();
+        return userRepository.findAll().stream()
+                .map(user -> userMapper.toUserResponse(user))
+                .toList();
     }
 
     // PostAuthorize vẫn cho hàm chạy bình thường
@@ -108,8 +110,8 @@ public class UserService {
         // trong context lấy username
         String username = authentication.getName();
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         return userMapper.toUserResponse(user);
     }

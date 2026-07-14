@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class RoleService {
-    
+
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
@@ -31,7 +31,8 @@ public class RoleService {
 
         // Lấy mảng tên string các quyền từ request, rồi tìm tất cả các quyền theo id, trả về list các quyền
         List<Permission> permissions = permissionRepository.findAllById(request.getPermissions());
-        role.setPermissions(new HashSet<>(permissions)); // set list quyền đó vào trong role (ta ko set trong mapper là để tự set ngoài này)
+        role.setPermissions(new HashSet<>(
+                permissions)); // set list quyền đó vào trong role (ta ko set trong mapper là để tự set ngoài này)
 
         return roleMapper.toRoleResponse(roleRepository.save(role));
     }
@@ -40,9 +41,7 @@ public class RoleService {
     public List<RoleResponse> getAll() {
         List<Role> roles = roleRepository.findAll();
 
-        return roles
-                .stream()
-                .map(role -> roleMapper.toRoleResponse(role)).toList();
+        return roles.stream().map(role -> roleMapper.toRoleResponse(role)).toList();
     }
 
     // xoá role theo tên (tên chính là id)
@@ -51,5 +50,4 @@ public class RoleService {
             roleRepository.deleteById(roleName);
         }
     }
-
 }

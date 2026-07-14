@@ -1,11 +1,11 @@
 package com.example.demo.service;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.example.demo.dto.request.UserCreationRequest;
 import com.example.demo.dto.response.PermissionResponse;
 import com.example.demo.dto.response.RoleResponse;
@@ -31,7 +32,6 @@ import com.example.demo.entity.Permission;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AppException;
-import com.example.demo.exception.ErrorCode;
 import com.example.demo.mapper.UserMappper;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
@@ -42,10 +42,13 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private RoleRepository roleRepository;
+
     @Mock
     private UserMappper userMapper;
+
     @Mock
     private PasswordEncoder passwordEncoder;
 
@@ -110,7 +113,6 @@ class UserServiceTest {
                 .dob(dob)
                 .roles(Set.of(role))
                 .build();
-
     }
 
     @AfterEach // chạy khi mỗi lần chạy hàm test xong
@@ -138,24 +140,20 @@ class UserServiceTest {
         assertThat(response.getUsername()).isEqualTo("trg25");
         assertThat(response.getFullName()).isEqualTo("Nguyễn Thế Trưởng");
         assertThat(response.getDob()).isEqualTo(dob);
-
     }
 
     @Test
     void createUser_userExsisted_fail() {
         // GIVEN
         when(userRepository.existsByUsername(anyString())).thenReturn(true);
-        
 
         // WHEN
         // Lấy exception trả về trong test case lỗi
         AppException exception = assertThrows(
-                AppException.class,
-                () -> userService.createUser(userCreationRequest)); // lỗi khi gọi hàm này
+                AppException.class, () -> userService.createUser(userCreationRequest)); // lỗi khi gọi hàm này
 
         // THEN
         assertThat(exception.getErrorCode().getCode()).isEqualTo(1004);
-
     }
 
     @Test
@@ -167,9 +165,7 @@ class UserServiceTest {
         when(roleRepository.findById(anyString())).thenReturn(Optional.ofNullable(null));
 
         // WHEN
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> userService.createUser(userCreationRequest));
+        AppException exception = assertThrows(AppException.class, () -> userService.createUser(userCreationRequest));
 
         // THEN
         assertThat(exception.getErrorCode().getCode()).isEqualTo(1010);
@@ -217,12 +213,9 @@ class UserServiceTest {
 
         // WHEN
         // Lấy exception trả về khi test case user not found
-        AppException exception = assertThrows(
-                AppException.class,
-                () -> userService.getMyInfo()); // khi gọi hàm này
+        AppException exception = assertThrows(AppException.class, () -> userService.getMyInfo()); // khi gọi hàm này
 
         // THEN
         assertThat(exception.getErrorCode().getCode()).isEqualTo(1006);
     }
-
 }

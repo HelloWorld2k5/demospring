@@ -3,9 +3,10 @@ package com.example.demo.dto.request;
 import java.time.LocalDate;
 import java.util.List;
 
+import jakarta.validation.constraints.Size;
+
 import com.example.demo.validator.DobConstraint;
 
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,9 +23,11 @@ public class UserUpdateRequest {
 
     @Size(min = 8, message = "PASSWORD_INVALID")
     String password;
+
     String fullName;
 
     @DobConstraint(min = 18, message = "DOB_INVALID")
     LocalDate dob;
+
     List<String> roles; // request update thêm list các roles
 }

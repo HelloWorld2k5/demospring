@@ -19,6 +19,7 @@ public class ApiResponse<T> {
 
     @Builder.Default // nếu ko có Default thì code sẽ bị builder gán lại bằng 0
     int code = 1000; // mặc định 1000 là success
+
     String message;
     T result;
 }

@@ -5,6 +5,7 @@ import java.util.Set;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,11 +23,11 @@ public class Role {
 
     @Id
     String name; // tên role là id luôn
+
     String description;
 
     @ManyToMany // Tạo mối qh nhiều - nhiều với bảng permission
     // Tức là tạo thêm 1 bảng role_permission với 2 khoá chính của 2 bảng role và permission
     // 1 role sẽ có nhiều permissions(quyền)
     Set<Permission> permissions;
-
 }
