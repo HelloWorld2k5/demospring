@@ -233,14 +233,16 @@
 						</importOrder>
 					</java>
 				</configuration>
-				<executions>
+
+				<!-- Check format code khi build -->
+				<!-- <executions>
 					<execution>
 						<phase>compile</phase>
 						<goals>
 							<goal>compile</goal>
 						</goals>
 					</execution>
-				</executions>
+				</executions> -->
 			</plugin>
 
 		</plugins>
