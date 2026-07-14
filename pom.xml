@@ -96,6 +96,14 @@
 			<version>2.4.240</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.security/spring-security-test -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<version>7.0.5</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -144,6 +152,36 @@
 
 					</annotationProcessorPaths>
 
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.12</version>
+				<executions>
+					<!-- Bước khởi tạo agent để theo dõi luồng chạy của code -->
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<!-- Bước tự động sinh báo cáo sau khi chạy xong toàn bộ test case -->
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<excludes>						<!-- Đây là phần config cho jacoco bỏ qua ko test để tăng chỉ số coverage  -->
+						<exclude>com/example/demo/dto/**</exclude>
+						<exclude>com/example/demo/entity/**</exclude>
+						<exclude>com/example/demo/mapper/**</exclude>
+						<exclude>com/example/demo/configuration/**</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 

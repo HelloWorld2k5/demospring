@@ -1,5 +1,5 @@
 spring:
-    # Chạy test ta sẽ chạy db h2 chứ ko dùng mysql vì test phải đc chạy độc lập,
+    # Chạy test ta sẽ chạy db h2 chứ ko dùng mysql vì test phải đc chạy độc lập (isolation),
     # chạy được ở bất cứ đâu, ko phụ thuộc vào db bên ngoài
     datasource:
         url: "jdbc:h2:mem:testdb;MODE=MYSQL"

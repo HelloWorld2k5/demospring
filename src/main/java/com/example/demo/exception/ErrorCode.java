@@ -18,8 +18,8 @@ public enum ErrorCode {
     UNAUTHORIZED(1002, "Not have permission!", HttpStatus.FORBIDDEN), // trả về 403 vì ko có quyền
     KEY_INVALID(1003, "Invalid key message!", HttpStatus.BAD_REQUEST), // trả về lỗi 400
     USER_EXISTED(1004, "User existed!", HttpStatus.BAD_REQUEST),
-    USER_NOT_EXISTED(1005, "User not existed!", HttpStatus.NOT_FOUND), // trả về 404 vì ko tìm thấy
-    USER_NOT_FOUND(1006, "User not found!", HttpStatus.NOT_FOUND),
+    USER_NOT_EXIST(1005, "User not existed!", HttpStatus.BAD_REQUEST), 
+    USER_NOT_FOUND(1006, "User not found!", HttpStatus.NOT_FOUND), // trả về 404 vì ko tìm thấy
     USERNAME_INVALID(1007, "Username must be at least {min} characters!", HttpStatus.BAD_REQUEST),
     PASSWORD_INVALID(1008, "Password must be at least {min} characters!", HttpStatus.BAD_REQUEST),
     DOB_INVALID(1009, "Age must be at least {min}", HttpStatus.BAD_REQUEST), // message trả về của trường hợp này sẽ linh động theo tham số min được truyền vào của annotation ràng buộc

@@ -100,13 +100,13 @@ public class UserService {
     // id (endpoint: "/users/myInfo")
     public UserResponse getMyInfo() {
 
-        // Khi đang đăng nhập tức là trong SecurityContextHolder có dữ liệu username và
-        // role
+        // Khi đang đăng nhập tức là trong SecurityContextHolder có dữ liệu username và role
         // Lấy context trong securitycontextholder
         var context = SecurityContextHolder.getContext();
+        var authentication = context.getAuthentication();
 
         // trong context lấy username
-        String username = context.getAuthentication().getName();
+        String username = authentication.getName();
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));

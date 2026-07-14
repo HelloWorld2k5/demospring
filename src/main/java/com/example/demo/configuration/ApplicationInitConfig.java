@@ -1,9 +1,11 @@
 package com.example.demo.configuration;
 
+import com.example.demo.entity.Permission;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
+import com.example.demo.repository.PermissionRepository;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,35 +43,63 @@ public class ApplicationInitConfig {
         value = "datasource.driver-class-name",
         havingValue = "com.mysql.cj.jdbc.Driver"
     )
-    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
+    ApplicationRunner applicationRunner(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PermissionRepository permissionRepository
+        ) {
 
         return args -> {
-            log.info("Init application.............");
+            log.info("Init application start...............");
 
-            // Nếu user admin chưa tồn tại tức là lần đầu app chạy
-            if (userRepository.findByUsername("admin").isEmpty()) {
-                // Set<String> roles = new HashSet<>();
-                // roles.add(Role.ADMIN.name());
+            // KHỞI TẠO CÁC PERMISSIONS CƠ BẢN TRƯỚC
+            Permission createPost = permissionRepository
+                    .findById("CREATE_POST")
+                    .orElseGet(() -> permissionRepository
+                            .save(Permission.builder()
+                                    .name("CREATE_POST")
+                                    .description("Create a new post")
+                                    .build()));
 
-                Role role = roleRepository
-                        .findById("ADMIN")
-                        .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+            Permission deleteUser = permissionRepository
+                    .findById("DELETE_USER")
+                    .orElseGet(() -> permissionRepository
+                            .save(Permission.builder()
+                                    .name("DELETE_USER")
+                                    .description("Delete user")
+                                    .build()));
 
-                User user = User.builder()
+            // TẠO CÁC ROLES
+            Role adminRole = roleRepository
+                    .findById("ADMIN")
+                    .orElseGet(() -> roleRepository
+                            .save(Role.builder()
+                                    .name("ADMIN")
+                                    .description("Role admin")
+                                    .permissions(Set.of(createPost, deleteUser))
+                                    .build()));
+
+            Role userRole = roleRepository
+                    .findById("USER")
+                    .orElseGet(() -> roleRepository
+                            .save(Role.builder()
+                                    .name("USER")
+                                    .description("Role user")
+                                    .permissions(Set.of(createPost))
+                                    .build()));
+
+            if (!userRepository.existsByUsername("ADMIN")) {
+                User admin = User.builder()
                         .username(defaultAdminUsername)
                         .password(passwordEncoder.encode(defaultAdminPassword))
-                        .roles(Set.of(role))
+                        .roles(Set.of(adminRole))
                         .build();
 
-                if (user == null) {
-                    log.error("Cannot create admin user! Some errors happen!");
-                    return;
-                }   
-
-                userRepository.save(user);
-
-                log.warn("Admin user created successfully with default password: admin2k5");
+                userRepository.save(admin);
+                log.info("Create user admin successfully! Default password: " + defaultAdminPassword);
             }
+
+            log.info("Init application end..................");
         };
     }
 
