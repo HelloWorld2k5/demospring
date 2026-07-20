@@ -6,12 +6,14 @@ import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Data
+@Getter // Không nên dùng @Data cho entity, bởi nó sẽ tự động có các method như hashCode và equals
+@Setter // gây ra các lỗi tiềm ẩn như LazyInitializationException, StackOverflowError
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)

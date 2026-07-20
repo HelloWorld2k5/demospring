@@ -39,9 +39,7 @@ public class UserService {
     public UserResponse createUser(UserCreationRequest request) {
         log.info("UserService: create user");
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new AppException(ErrorCode.USER_EXISTED);
-        }
+        // Khi column username đã có unique thì không cần phải check trùng username ở đây nữa
 
         // Dùng mapper ta không cần set liên tục như này nữa
         // User user = new User();
@@ -58,8 +56,8 @@ public class UserService {
         // roles.add(Role.USER.name()); // tạo roles mặc định cho user mới tạo
 
         // Role mặc định là USER, ko có role user vứt exception
-        Role defaultRole =
-                roleRepository.findById("USER").orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        Role defaultRole = roleRepository.findById("USER")
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         user.setRoles(Set.of(defaultRole)); // set roles
 
@@ -71,7 +69,7 @@ public class UserService {
     // Nếu ok thì mới chạy logic trong Hàm
     // Nếu ko ok thì ném 403 (AccessDeniedException) và code trong hàm ko chạy
     // @PreAuthorize("hasRole('ADMIN')")
-    @PreAuthorize("hasAuthority('APPROVE_POST')") // có quyền
+    @PreAuthorize("hasRole('admin')") // có quyền
     public List<UserResponse> getAllUsers() {
 
         // Log sẽ hiện (hàm chạy) sau khi PreAuthorize check role thành công
@@ -102,7 +100,8 @@ public class UserService {
     // id (endpoint: "/users/myInfo")
     public UserResponse getMyInfo() {
 
-        // Khi đang đăng nhập tức là trong SecurityContextHolder có dữ liệu username và role
+        // Khi đang đăng nhập tức là trong SecurityContextHolder có dữ liệu username và
+        // role
         // Lấy context trong securitycontextholder
         var context = SecurityContextHolder.getContext();
         var authentication = context.getAuthentication();
@@ -110,8 +109,8 @@ public class UserService {
         // trong context lấy username
         String username = authentication.getName();
 
-        User user =
-                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         return userMapper.toUserResponse(user);
     }

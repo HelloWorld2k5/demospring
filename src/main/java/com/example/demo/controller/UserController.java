@@ -84,7 +84,9 @@ public class UserController {
 
     // Xoá user bằng id
     @DeleteMapping("/users/{userId}")
-    public void deleteUserById(@PathVariable String userId) {
+    public ApiResponse<Void> deleteUserById(@PathVariable String userId) {
         userService.deleteUserById(userId);
+
+        return ApiResponse.<Void>builder().build();
     }
 }

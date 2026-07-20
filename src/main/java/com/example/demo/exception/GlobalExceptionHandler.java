@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import jakarta.validation.ConstraintViolation;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -112,8 +113,22 @@ public class GlobalExceptionHandler {
     // Xử lý ngoại lệ bắn ra khi không có quyền truy cập vào endpoint
     @ExceptionHandler(value = AuthorizationDeniedException.class)
     private ResponseEntity<ApiResponse<?>> handlingAccessDeniedException(AuthorizationDeniedException exception) {
-
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build();
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+    }
+
+    // Đây là ngoại lệ bắn ra khi db nhận nhiều request cùng lúc
+    // ví dụ khi có 5 request cùng lúc thêm 5 user có username giống nhau
+    // mà column username là unique nên db sẽ xử lý bằng tính atomicity và locking
+    @ExceptionHandler(value = DataIntegrityViolationException.class)
+    private ResponseEntity<ApiResponse<?>> handlingDataIntegrityViolationException(DataIntegrityViolationException exception) {
+        ErrorCode errorCode = ErrorCode.USER_EXISTED;
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .code(errorCode.getCode())

@@ -1,5 +1,7 @@
 package com.example.demo.configuration;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -83,6 +85,8 @@ public class ApplicationInitConfig {
                 User admin = User.builder()
                         .username(defaultAdminUsername)
                         .password(passwordEncoder.encode(defaultAdminPassword))
+                        .fullName("Nguyễn Admin")
+                        .dob(LocalDate.of(2005, Month.AUGUST, 21))
                         .roles(Set.of(adminRole))
                         .build();
 
