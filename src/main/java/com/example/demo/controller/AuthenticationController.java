@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/auth") // định dạng chung cho đường dẫn
 @Data
 @RequiredArgsConstructor // chỉ tạo constructor chỉ các fields có final hoặc @NonNull
-@CrossOrigin(origins = "http://localhost:5173/")
 @Slf4j
 public class AuthenticationController {
 

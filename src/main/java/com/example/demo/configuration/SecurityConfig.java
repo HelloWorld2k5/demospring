@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     // Các endpoints mà ai cũng truy cập được
-    private final String[] PUBLIC_ENDPOINTS = {
+    private static final String[] PUBLIC_ENDPOINTS = {
         "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"
     };
 

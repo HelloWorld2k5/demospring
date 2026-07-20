@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173/")
+// Không cần dùng @CrossOrigin(origins = "http://localhost:5173/") nữa vì đã có cors config cho tất cả các endpoints
 public class UserController {
 
     private final UserService userService;
