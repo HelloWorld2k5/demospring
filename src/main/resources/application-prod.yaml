@@ -1,0 +1,4 @@
+# Đây là các biến và 1 số biến trong file env dùng trên môi trường production
+jwt:
+    access-token-validity-in-seconds: 1800
+    refreshable-duration-in-seconds: 180000

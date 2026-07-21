@@ -2,11 +2,14 @@ package com.example.demo.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.lang.NonNull;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 // Error code chứa mã code và message của lỗi
 @Getter
+@RequiredArgsConstructor
 public enum ErrorCode {
     UNCATEGORIZED_ERROR(9999, "Uncategorized error!", HttpStatus.INTERNAL_SERVER_ERROR), // trả về lỗi 500
 
@@ -27,13 +30,9 @@ public enum ErrorCode {
     DOB_INVALID(1009, "Age must be at least {min}", HttpStatus.BAD_REQUEST),
     ROLE_NOT_FOUND(1010, "Role not found!", HttpStatus.NOT_FOUND);
 
-    private ErrorCode(int code, String message, HttpStatusCode statusCode) {
-        this.code = code;
-        this.message = message;
-        this.statusCode = statusCode;
-    }
-
     private final int code;
     private final String message;
+
+    @NonNull
     private final HttpStatusCode statusCode;
 }

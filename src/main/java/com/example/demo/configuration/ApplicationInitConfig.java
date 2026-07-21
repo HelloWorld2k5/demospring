@@ -66,9 +66,9 @@ public class ApplicationInitConfig {
 
             // TẠO CÁC ROLES
             Role adminRole = roleRepository
-                    .findById(defaultAdminUsername)
+                    .findById("ADMIN")
                     .orElseGet(() -> roleRepository.save(Role.builder()
-                            .name(defaultAdminUsername)
+                            .name("ADMIN")
                             .description("Role admin")
                             .permissions(Set.of(createPost, deleteUser))
                             .build()));
@@ -91,7 +91,7 @@ public class ApplicationInitConfig {
                         .build();
 
                 userRepository.save(admin);
-                log.info("Create user admin successfully! Default password: " + defaultAdminPassword);
+                log.info("Create user admin successfully! Default password: {}", defaultAdminPassword);
             }
 
             log.info("Init application end..................");

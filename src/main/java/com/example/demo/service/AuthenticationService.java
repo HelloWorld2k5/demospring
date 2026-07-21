@@ -81,6 +81,11 @@ public class AuthenticationService {
 
     // đây là hàm login
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+
+        log.info("Signer key: {}", signerKey);
+        log.info("Access token validity: {}", accessTokenValidityInSeconds);
+        log.info("Refreshable duration: {}", refreshableDurationInSeconds);
+
         User user = userRepository
                 .findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));

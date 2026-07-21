@@ -68,8 +68,7 @@ public class UserService {
     // role
     // Nếu ok thì mới chạy logic trong Hàm
     // Nếu ko ok thì ném 403 (AccessDeniedException) và code trong hàm ko chạy
-    // @PreAuthorize("hasRole('ADMIN')")
-    @PreAuthorize("hasRole('admin')") // có quyền
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAllUsers() {
 
         // Log sẽ hiện (hàm chạy) sau khi PreAuthorize check role thành công
